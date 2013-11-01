@@ -17,3 +17,5 @@ test/version_tmp
 tmp
 crape-proto
 vendor
+leanci.log*
+leanci.pid

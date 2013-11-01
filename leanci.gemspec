@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["naoyuki.hirayama@gmail.com"]
   spec.description   = %q{minimal CI servant}
   spec.summary       = %q{minimal CI servant work with chef-like DSL}
-  spec.homepage      = ""
+  spec.homepage      = "https://github.com/jonigata/leanci"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files`.split($/)
