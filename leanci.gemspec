@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.version       = Leanci::VERSION
   spec.authors       = ["Naoyuki Hirayama"]
   spec.email         = ["naoyuki.hirayama@gmail.com"]
-  spec.description   = %q{TODO: Write a gem description}
-  spec.summary       = %q{TODO: Write a gem summary}
+  spec.description   = %q{minimal CI servant}
+  spec.summary       = %q{minimal CI servant work with chef-like DSL}
   spec.homepage      = ""
   spec.license       = "MIT"
 

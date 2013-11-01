@@ -4,13 +4,22 @@ module MyWorker
   def run
     reload
     until @stop
-      Script.new(logger, @script_source)
+      if @script_source
+        Script.new(logger, @script_source)
+      else
+        sleep 1
+      end
     end
   end
 
   def reload
-    File.open(config[:script]) do |f|
-      @script_source = f.read
+    begin
+      @script_source = nil
+      File.open(config[:script]) do |f|
+        @script_source = f.read
+      end
+    rescue
+      logger.fatal "can't open script file"
     end
   end
   
