@@ -21,6 +21,8 @@ module Script
       if @interval <= @m
         Dir.chdir(repository) do 
           Bash.new(@toplevel, self) do
+            user injection.username
+            group injection.groupname
             code <<-EOC
               hg incoming
             EOC

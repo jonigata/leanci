@@ -58,6 +58,7 @@ module Script
       logger.info @code.chomp if @echo
       o, e, s = Open3.capture3(cmd, stdin_data: @code)
       logger.info o.chomp if @echo
+      logger.info e.chomp if e != ""
       s
     end
   end
