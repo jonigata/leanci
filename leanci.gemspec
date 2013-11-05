@@ -22,4 +22,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake"
 
   spec.add_runtime_dependency "serverengine"
+  spec.add_runtime_dependency "rb-inotify"
 end

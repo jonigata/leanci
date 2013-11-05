@@ -1,92 +1,131 @@
 require 'open3'
 
-class Bash
-  def initialize(logger, &block)
-    @logger = logger
-    instance_eval(&block)
+module Script
+  class TopLevel
+    def initialize(logger, script_source)
+      @logger = logger
+      @triggers = {}
+      @actions = {}
+      instance_eval(script_source)
+    end
 
-    if @code 
-      if @user
-        if @user == 'root'
-          exec_code("sudo /bin/bash")
-        else
-          group = @group || @user
-          exec_code("sudo -u #{@user} -g #{group} /bin/bash", stdin_data: @code)
-        end
-      else
-        exec_code("/bin/bash")
+    attr_reader :logger, :triggers, :actions
+
+    def doit
+      @triggers.each do |k, t|
+        t.doit
       end
-      if status == 0
-        InnerScript.new(@logger, &@success) if @success
-      else
-        InnerScript.new(@logger, &@failure) if @failure
+    end
+
+    #---------------------------------------------------------------
+    # DSL
+    def trigger(tag, &block)
+      @triggers[tag] = Trigger.new(self, &block)
+    end
+
+    def action(tag, &block)
+      @actions[tag] = Action.new(self, &block)
+    end
+  end
+
+  ################################################################
+  # in TopLevel
+  class Trigger
+    def initialize(toplevel, &block)
+      @toplevel = toplevel
+      instance_eval(&block)
+    end
+
+    def doit
+      @crawler.doit
+    end
+
+    #---------------------------------------------------------------
+    # DSL
+    def interval(n, &block)
+      @crawler = Interval.new(@toplevel, n, &block)
+    end
+  end
+
+  class Action
+    def initialize(toplevel, &block)
+      @prog = Prog.new(toplevel, &block)
+    end
+
+    def doit
+      @prog.doit
+    end
+  end
+
+  ################################################################
+  # in Trigger
+  class Interval
+    def initialize(toplevel, n, &block)
+      @toplevel = toplevel
+      @n = n
+      @m = 0
+      @prog = Prog.new(@toplevel, &block)
+    end
+
+    def doit
+      @m += 1
+      if @m == @n
+        @prog.doit
+        @m = 0
       end
     end
   end
 
-  def exec_code(cmd)
-    @logger.info @logtext if @logtext
-    @logger.info @code.chomp if @echo
-    o, e, s = Open3.capture3(cmd, stdin_data: @code)
-    @logger.info o.chomp if @echo
-    @status = s
+  ################################################################
+  # where procedure required
+  class Prog
+    def initialize(toplevel, injection = nil, &block)
+      @toplevel = toplevel
+      @injection = injection
+      @prog = []
+      instance_eval(&block)
+    end
+
+    attr_reader :injection
+
+    def doit
+      @prog.each do |p|
+        p.doit
+      end
+    end
+
+    #---------------------------------------------------------------
+    # DSL
+    def echo(s)
+      @prog.push Echo.new(@toplevel, s)
+    end
+
+    def run(tag)
+      @prog.push Run.new(@toplevel, tag)
+    end
   end
 
-  attr_reader :status
+  ################################################################
+  # in Prog
+  class Echo
+    def initialize(toplevel, s)
+      @toplevel = toplevel
+      @s = s
+    end
 
-  def user(s)
-    @user = s
+    def doit
+      @toplevel.logger.info @s
+    end
   end
 
-  def group(s)
-    @group = s
-  end
+  class Run
+    def initialize(toplevel, tag)
+      @toplevel = toplevel
+      @tag = tag
+    end
 
-  def code(s)
-    @code = s
-  end
-
-  def success(&block)
-    @success = block
-  end
-
-  def failure(&block)
-    @failure = block
-  end
-
-  def log(logtext)
-    @logtext = logtext
-  end
-
-  def echo(flag)
-    @echo = flag
-  end
-end
-
-class InnerScript
-  def initialize(logger, &block)
-    @logger = logger
-    instance_eval(&block)
-  end
-
-  def bash(&block)
-    Bash.new(@logger, &block).status
-  end
-end
-
-
-class Script
-  def initialize(logger, script_source)
-    @logger = logger
-    instance_eval(script_source)
-  end
-
-  def per_sec(sec = 1, &block) 
-    sleep sec
-    instance_eval(&block)
-  end
-
-  def bash(&block)
-    Bash.new(@logger, &block).status
+    def doit
+      @toplevel.actions[@tag].doit
+    end
   end
 end

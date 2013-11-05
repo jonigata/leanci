@@ -1,18 +1,26 @@
-per_sec(10) do
-  bash do
-    code <<-EOC
-      cd crape-proto
-      hg incoming
-    EOC
-    success do
-      bash do
-        log "pull --update crape-proto"
-        echo true
-        code <<-EOC
-          cd crape-proto
-          hg pull --update
-        EOC
-      end
+trigger :poll_mercurial do
+  mercurial 'test-repo2' do
+    interval 5
+    user 'hirayama'
+    group 'hirayama'
+    action :hg_update
+  end
+end
+
+action :hg_update do
+  echo 'repository updated'
+end
+
+=begin
+trigger :watch_file do
+  watch 't.txt' do
+    modify do 
+      run :file_update
     end
   end
 end
+
+action :file_update do
+  echo 'file updated'
+end
+=end

@@ -1,25 +1,23 @@
-require_relative 'script'
-
 module MyWorker
   def run
     reload
     until @stop
-      if @script_source
-        Script.new(logger, @script_source)
-      else
-        sleep 1
+      if @script
+        @script.doit
       end
+      sleep 1
     end
   end
 
   def reload
     begin
-      @script_source = nil
+      @script = nil
       File.open(config[:script]) do |f|
-        @script_source = f.read
+        @script = Script::TopLevel.new(logger, f.read)
       end
-    rescue
+    rescue => e
       logger.fatal "can't open script file"
+      logger.fatal e.to_s
     end
   end
   

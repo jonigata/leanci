@@ -4,16 +4,24 @@ require 'rubygems'
 require 'leanci'
 
 config = {
+  daemonize: false,
   script: 'default.leanci',
   pid_path: 'leanci.pid',
   log: 'leanci.log'
 }
 OptionParser.new do |opt|
+  opt.on('-d', 'daemonize') do
+    config[:daemonize] = true
+    config[:supervisor] = true
+  end
   opt.on('-f VALUE', 'specify leanci file') do |f|
     config[:script] = f
   end
-  opt.on('--pid VALUE', 'pid file') do |f|
+  opt.on('--pidfile VALUE', 'pid file') do |f|
     config[:pid_path] = f
+  end
+  opt.on('--logfile VALUE', 'log file') do |f|
+    config[:log] = f
   end
   opt.parse!(ARGV)
 end
