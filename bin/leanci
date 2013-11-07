@@ -7,7 +7,7 @@ config = {
   daemonize: false,
   script: 'default.leanci',
   pid_path: 'leanci.pid',
-  log: 'leanci.log'
+  log: STDOUT
 }
 OptionParser.new do |opt|
   opt.on('-d', 'daemonize') do

@@ -43,6 +43,7 @@ module Script
     def code(s); @code = s end
     def log(s); @log = s end
     def echo(s); @echo = s end
+    def cwd(s); @cwd = s end
 
     def success(inj = nil, &block)
       @success = Prog.new(@toplevel, inj, &block)
@@ -53,10 +54,13 @@ module Script
 
     private
     def exec_code(cmd)
+      code = @code
+      code = "cd #{@cwd}\n" + code if @cwd
+
       logger = @toplevel.logger
       logger.info @log if @log
-      logger.info @code.chomp if @echo
-      o, e, s = Open3.capture3(cmd, stdin_data: @code)
+      logger.info code.chomp if @echo
+      o, e, s = Open3.capture3(cmd, stdin_data: code)
       logger.info o.chomp if @echo
       logger.info e.chomp if e != ""
       s
